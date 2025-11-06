@@ -1,0 +1,6 @@
+{
+  "experimentalTernaries": true,
+  "singleQuote": true,
+  "objectWrap": "collapse",
+  "arrowParens": "avoid"
+}

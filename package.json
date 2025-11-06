@@ -1,0 +1,33 @@
+{
+  "name": "qr-code-encryption-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/denis-albertini/qr-code-encryption-api.git"
+  },
+  "keywords": [],
+  "author": "Denis Albertini",
+  "license": "",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/denis-albertini/qr-code-encryption-api/issues"
+  },
+  "homepage": "https://github.com/denis-albertini/qr-code-encryption-api#readme",
+  "dependencies": {
+    "@dotenvx/dotenvx": "^1.51.1",
+    "bcryptjs": "^3.0.3",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.16.3",
+    "pg-hstore": "^2.3.4",
+    "qrcode": "^1.5.4",
+    "sequelize": "^6.37.7"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0",
+    "nodemon": "^3.1.10"
+  }
+}

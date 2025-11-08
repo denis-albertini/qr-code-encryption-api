@@ -14,6 +14,9 @@ export default class User extends Model {
           type: DataTypes.STRING(50),
           allowNull: false,
           unique: true,
+          validate: {
+            len: [3, 50],
+          },
         },
         email: {
           type: DataTypes.STRING(100),

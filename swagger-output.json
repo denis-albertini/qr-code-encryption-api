@@ -1,0 +1,600 @@
+{
+  "openapi": "3.0.4",
+  "info": {
+    "version": "1.0.0",
+    "title": "QR Code Encryption System API",
+    "description": ""
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000/"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Users",
+      "description": "Users management endpoints"
+    },
+    {
+      "name": "QRCodes",
+      "description": "QR codes management endpoints"
+    },
+    {
+      "name": "Complaints",
+      "description": "Complaints managment endpoints"
+    }
+  ],
+  "paths": {
+    "/api/users": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Create a user",
+        "description": "Create a new user",
+        "responses": {
+          "201": {
+            "description": "User created successfully - No content"
+          },
+          "400": {
+            "description": "Bad Request - Invalid input data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "invalidFields": {
+                    "summary": "An example of invalid values",
+                    "value": {
+                      "message": "Validation error.",
+                      "errors": [
+                        "Validation validationName on field failed"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict - User cannot be created (e.g., conflicting username)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "conflict": {
+                    "$ref": "#/components/examples/ConflictError"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "internal": {
+                    "$ref": "#/components/examples/InternalServerError"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewUser"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/login": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "User login",
+        "description": "User login",
+        "responses": {
+          "200": {
+            "description": "User logged in successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Token"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "unauthorized": {
+                    "$ref": "#/components/examples/UnauthorizedError"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found - User does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "notFound": {
+                    "$ref": "#/components/examples/NotFoundError"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "internalServer": {
+                    "$ref": "#/components/examples/InternalServerError"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/UsernameLogin"
+                  },
+                  {
+                    "$ref": "#/components/schemas/EmailLogin"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/qr-codes/verify": {
+      "post": {
+        "tags": [
+          "QRCodes"
+        ],
+        "summary": "Verify a QR code",
+        "description": "Verify a QR code",
+        "responses": {
+          "204": {
+            "description": "QR code is valid - No content"
+          },
+          "400": {
+            "description": "Bad Request - Invalid input data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "userNotFound": {
+                    "summary": "An example of an invalid user id",
+                    "value": {
+                      "message": "Payload userId does not belong to a user.",
+                      "errors": []
+                    }
+                  },
+                  "invalidQRCode": {
+                    "summary": "An example of an invalid QR code",
+                    "value": {
+                      "message": "QR code signature is invalid.",
+                      "errors": []
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "generic": {
+                    "$ref": "#/components/examples/InternalServerError"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Payload"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/qr-codes": {
+      "post": {
+        "tags": [
+          "QRCodes"
+        ],
+        "summary": "Generate a QR code",
+        "description": "Generate a signed QR code",
+        "responses": {
+          "201": {
+            "description": "QR code generated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QRCodeUrl"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - User authentication required"
+          },
+          "404": {
+            "description": "Bad Request - Invalid input data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "userNotFound": {
+                    "$ref": "#/components/examples/NotFoundError"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "generic": {
+                    "$ref": "#/components/examples/InternalServerError"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "UserAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewQRCode"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/complaints": {
+      "post": {
+        "tags": [
+          "Complaints"
+        ],
+        "summary": "Create a complaint",
+        "description": "Create a new complaint",
+        "responses": {
+          "201": {
+            "description": "Complaint created successfully - No content"
+          },
+          "400": {
+            "description": "Bad Request - Invalid input data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "invalidValues": {
+                    "summary": "An example of invalid values",
+                    "value": {
+                      "message": "Invalid complaint request data.",
+                      "errors": [
+                        "User not found",
+                        "QR code not found"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict - Complaint cannot be created (e.g., conflicting deviceId)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "conflict": {
+                    "$ref": "#/components/examples/ConflictError"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewComplaint"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "UserAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "examples": {
+      "ConflictError": {
+        "summary": "An example of a unique constraint error",
+        "value": {
+          "message": "Unique constraint error.",
+          "errors": [
+            "duplicating key value violates unique constraint \"table_field_key\""
+          ]
+        }
+      },
+      "InternalServerError": {
+        "summary": "An example of a internal server error",
+        "value": {
+          "message": "Internal server error.",
+          "errors": [
+            "Failed to do something"
+          ]
+        }
+      },
+      "NotFoundError": {
+        "summary": "An example of a not found error",
+        "value": {
+          "message": "User does not exist.",
+          "errors": []
+        }
+      },
+      "UnauthorizedError": {
+        "summary": "An example of an unauthorized error",
+        "value": {
+          "message": "Invalid credentials.",
+          "errors": [
+            "Password does not match"
+          ]
+        }
+      }
+    },
+    "schemas": {
+      "NewUser": {
+        "type": "object",
+        "required": [
+          "username",
+          "email",
+          "password"
+        ],
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UsernameLogin": {
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EmailLogin": {
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Token": {
+        "type": "object",
+        "required": [
+          "token"
+        ],
+        "properties": {
+          "token": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Payload": {
+        "type": "object",
+        "required": [
+          "id",
+          "username",
+          "createdAt",
+          "content",
+          "signature"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "username": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "integer"
+          },
+          "content": {
+            "type": "string"
+          },
+          "signature": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NewQRCode": {
+        "type": "object",
+        "required": [
+          "userId",
+          "content"
+        ],
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "content": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "QRCodeUrl": {
+        "type": "object",
+        "required": [
+          "qrCodeUrl"
+        ],
+        "properties": {
+          "qrCodeUrl": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NewComplaint": {
+        "type": "object",
+        "required": [
+          "deviceId",
+          "qrCodeId",
+          "description",
+          "userId"
+        ],
+        "properties": {
+          "deviceId": {
+            "type": "string"
+          },
+          "qrCodeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Error": {
+        "type": "object",
+        "required": [
+          "message",
+          "errors"
+        ],
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

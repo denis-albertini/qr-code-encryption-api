@@ -5,7 +5,7 @@ import User from '../models/user.js';
 
 export default class ComplaintController {
   createComplaint = async (req, res) => {
-    const { userId, qrCodeId, description, deviceId } = req.body;
+    const { deviceId, qrCodeId, description, userId } = req.body;
 
     const errors = [];
 
@@ -23,7 +23,7 @@ export default class ComplaintController {
       throw new CustomError('Invalid complaint request data.', 400, ...errors);
     }
 
-    await Complaint.create({ userId, qrCodeId, description, deviceId });
+    await Complaint.create({ deviceId, qrCodeId, description, userId });
 
     const count = await Complaint.count({ where: { qrCodeId } });
 

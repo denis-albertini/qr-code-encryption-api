@@ -32,9 +32,15 @@ export default class UserController {
   };
 
   login = async (req, res) => {
-    const { email, password } = req.body;
+    const { username, email, password } = req.body;
 
-    const user = await User.findOne({ where: { email } });
+    let user;
+
+    if (username) {
+      user = await User.findOne({ where: { username } });
+    } else if (email) {
+      user = await User.findOne({ where: { email } });
+    }
 
     if (!user) {
       throw new CustomError('User does not exist.', 404);

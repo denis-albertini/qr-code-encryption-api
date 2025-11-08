@@ -1,0 +1,33 @@
+import jwt from 'jsonwebtoken';
+import { promisify } from 'util';
+import CustomError from '../../models/custom-error.js';
+
+const jwtAsyncVerify = promisify(jwt.verify);
+
+function createAuthMiddleware(...acceptedRoles) {
+  return async (req, _res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+      throw new CustomError('Invalid credentials.', 401, 'Missing credentials');
+    }
+
+    let payload;
+
+    try {
+      payload = await jwtAsyncVerify(token, process.env.JWT_SECRET);
+    } catch (error) {
+      throw new CustomError('Failed to verify jwt token.', 500, error.message);
+    }
+
+    if (acceptedRoles.length > 0 && !acceptedRoles.includes(payload.role)) {
+      throw new CustomError('Forbidden.', 403);
+    }
+
+    next();
+  };
+}
+
+export const userAuthMiddleware = createAuthMiddleware('USER');
+export const adminAuthMiddleware = createAuthMiddleware('ADMIN');

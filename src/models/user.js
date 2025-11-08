@@ -1,50 +1,57 @@
 import bcrypt from 'bcryptjs';
-import { DataTypes } from 'sequelize';
-import sequelize from '../sequelize.js';
+import { DataTypes, Model } from 'sequelize';
 
-const User = sequelize.define(
-  'User',
-  {
-    id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true,
-    },
-    email: {
-      type: DataTypes.STRING(100),
-      allowNull: false,
-      unique: true,
-      validate: { isEmail: true },
-    },
-    password: {
-      type: DataTypes.STRING(60),
-      allowNull: false,
-    },
-    role: {
-      type: DataTypes.ENUM,
-      allowNull: false,
-      values: ['USER', 'ADMIN'],
-    },
-    privateKey: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
-    publicKey: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
-  },
-  {
-    tableName: 'user',
-    paranoid: true,
-    hooks: {
-      beforeCreate: async (user, _options) => {
-        user.password = await bcrypt.hash(user.password, 10);
+export default class User extends Model {
+  static init(sequelize) {
+    super.init(
+      {
+        id: {
+          type: DataTypes.UUID,
+          defaultValue: DataTypes.UUIDV4,
+          primaryKey: true,
+        },
+        username: {
+          type: DataTypes.STRING(50),
+          allowNull: false,
+          unique: true,
+        },
+        email: {
+          type: DataTypes.STRING(100),
+          allowNull: false,
+          unique: true,
+          validate: { isEmail: true },
+        },
+        password: {
+          type: DataTypes.STRING(60),
+          allowNull: false,
+        },
+        role: {
+          type: DataTypes.ENUM,
+          values: ['USER', 'ADMIN'],
+          defaultValue: 'USER',
+          allowNull: false,
+        },
+        privateKey: {
+          type: DataTypes.STRING(1800),
+          allowNull: false,
+          unique: true,
+        },
+        publicKey: {
+          type: DataTypes.STRING(460),
+          allowNull: false,
+          unique: true,
+        },
       },
-    },
+      {
+        sequelize,
+        tableName: 'user',
+        paranoid: true,
+        hooks: {
+          beforeCreate: async (user, _options) => {
+            user.password = await bcrypt.hash(user.password, 10);
+          },
+        },
+      }
+    );
   }
-);
-
-export default User;
+}

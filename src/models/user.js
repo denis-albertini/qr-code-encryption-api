@@ -44,6 +44,12 @@ export default class User extends Model {
           allowNull: false,
           unique: true,
         },
+        status: {
+          type: DataTypes.ENUM,
+          values: ['PENDING', 'ACTIVE'],
+          defaultValue: 'PENDING',
+          allowNull: false,
+        },
       },
       {
         sequelize,

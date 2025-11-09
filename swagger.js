@@ -113,7 +113,7 @@ const doc = {
         summary: 'An example of a internal server error',
         value: {
           message: 'Internal server error.',
-          errors: ['Failed to do something'],
+          errors: ['Failed to do something', 'Refer to console'],
         },
       },
       NotFoundError: {
@@ -139,6 +139,11 @@ const routes = ['./src/express/app.js'];
 
 await swaggerAutogen({ openapi: '3.0.4' })(outputFile, routes, doc);
 
+/*
+  A solution to byspass trailing slashes in paths because of
+  strict swagger-autogen path generation and
+  strict express-openapi-validator paths validation
+*/
 const swaggerDoc = JSON.parse(fs.readFileSync('./swagger-output.json'));
 
 const normalizedPaths = {};

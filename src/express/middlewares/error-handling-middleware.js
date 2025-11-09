@@ -25,7 +25,9 @@ export const errorHandlingMiddleware = (err, _req, res, _next) => {
       default:
         message = 'Internal server error.';
         status = 500;
-        errors = [err.message || 'Refer to console'];
+        errors = ['Refer to console'];
+        console.error(err);
+        break;
     }
 
     customError = new CustomError(message, status, ...errors);

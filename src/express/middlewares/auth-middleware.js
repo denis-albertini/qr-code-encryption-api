@@ -4,7 +4,7 @@ import CustomError from '../../models/custom-error.js';
 
 const jwtAsyncVerify = promisify(jwt.verify);
 
-function createAuthMiddleware(...acceptedRoles) {
+function createAuthMiddleware(purpose, ...acceptedRoles) {
   return async (req, _res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
@@ -21,7 +21,10 @@ function createAuthMiddleware(...acceptedRoles) {
       throw new CustomError('Failed to verify jwt token.', 500, error.message);
     }
 
-    if (acceptedRoles.length > 0 && !acceptedRoles.includes(payload.role)) {
+    if (
+      payload.purpose !== purpose ||
+      (acceptedRoles.length > 0 && !acceptedRoles.includes(payload.role))
+    ) {
       throw new CustomError('Forbidden.', 403);
     }
 
@@ -29,5 +32,5 @@ function createAuthMiddleware(...acceptedRoles) {
   };
 }
 
-export const userAuthMiddleware = createAuthMiddleware('USER');
-export const adminAuthMiddleware = createAuthMiddleware('ADMIN');
+export const userAuthMiddleware = createAuthMiddleware('ACCESS', 'USER');
+export const adminAuthMiddleware = createAuthMiddleware('ACCESS', 'ADMIN');

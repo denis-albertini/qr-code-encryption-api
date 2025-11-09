@@ -139,6 +139,20 @@
                 },
                 "examples": {
                   "e1": {
+                    "summary": "An example of an expired token",
+                    "value": {
+                      "message": "Token is expired.",
+                      "errors": []
+                    }
+                  },
+                  "e2": {
+                    "summary": "An example of an invalid token payload",
+                    "value": {
+                      "message": "Token is invalid.",
+                      "errors": []
+                    }
+                  },
+                  "e3": {
                     "summary": "An example of an invalid user id",
                     "value": {
                       "message": "User account is not pending.",
@@ -158,7 +172,7 @@
                 },
                 "examples": {
                   "e1": {
-                    "summary": "An example of an invalid token",
+                    "summary": "An example of token verification failure",
                     "value": {
                       "message": "Failed to verify email confirmation token.",
                       "errors": []

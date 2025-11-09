@@ -5,9 +5,14 @@ import User from './models/user.js';
 
 class Database {
   #sequelize;
+  #transaction;
 
   get sequelize() {
     return this.#sequelize;
+  }
+
+  get transaction() {
+    return this.#transaction;
   }
 
   async initConnection() {
@@ -61,6 +66,46 @@ class Database {
     }
 
     await this.sequelize.sync(options);
+  }
+
+  async startTransaction() {
+    if (!this.sequelize) {
+      throw new Error(
+        'Trying to start a transaction but there is no connection.'
+      );
+    }
+
+    if (this.transaction) {
+      throw new Error(
+        'Trying to start a new transaction but the last one is not finished.'
+      );
+    }
+
+    this.#transaction = await this.sequelize.transaction();
+  }
+
+  async commitTransaction() {
+    if (!this.transaction) {
+      throw new Error(
+        'Trying to commit a transaction but there is not one running.'
+      );
+    }
+
+    await this.transaction.commit();
+
+    this.#transaction = null;
+  }
+
+  async rollbackTransaction() {
+    if (!this.transaction) {
+      throw new Error(
+        'Trying to rollback a transaction but there is not one running.'
+      );
+    }
+
+    await this.transaction.rollback();
+
+    this.#transaction = null;
   }
 }
 

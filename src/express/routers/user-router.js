@@ -88,14 +88,14 @@ router.get(
                 message: 'Token is expired.',
                 errors: []
               }
-            }
+            },
             e2: {
               summary: 'An example of an invalid token payload',
               value: {
                 message: 'Token is invalid.',
                 errors: []
               }
-            }
+            },
             e3: {
               summary: 'An example of an invalid user id',
               value: {
@@ -114,7 +114,7 @@ router.get(
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
             e1: {
-              summary: 'An example of an invalid token',
+              summary: 'An example of token verification failure',
               value: {
                 message: 'Failed to verify email confirmation token.',
                 errors: []

@@ -7,6 +7,7 @@ const doc = {
     title: 'QR Code Encryption System API',
     description: '',
   },
+  servers: [],
   tags: [
     { name: 'Users', description: 'Users management endpoints' },
     { name: 'QRCodes', description: 'QR codes management endpoints' },
@@ -97,38 +98,6 @@ const doc = {
           errors: { type: 'array', items: { type: 'string' } },
         },
         additionalProperties: false,
-      },
-    },
-    examples: {
-      ConflictError: {
-        summary: 'An example of a unique constraint error',
-        value: {
-          message: 'Unique constraint error.',
-          errors: [
-            'duplicating key value violates unique constraint "table_field_key"',
-          ],
-        },
-      },
-      InternalServerError: {
-        summary: 'An example of a internal server error',
-        value: {
-          message: 'Internal server error.',
-          errors: ['Failed to do something', 'Refer to console'],
-        },
-      },
-      NotFoundError: {
-        summary: 'An example of a not found error',
-        value: {
-          message: 'User does not exist.',
-          errors: [],
-        },
-      },
-      UnauthorizedError: {
-        summary: 'An example of an unauthorized error',
-        value: {
-          message: 'Invalid credentials.',
-          errors: ['Password does not match'],
-        },
       },
     },
   },

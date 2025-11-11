@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "http://qr-code-encryption-api-production.up.railway.app:3000/"
+      "url": "http://localhost:3000/"
     }
   ],
   "tags": [
@@ -44,12 +44,12 @@
                   "$ref": "#/components/schemas/Error"
                 },
                 "examples": {
-                  "invalidFields": {
+                  "e1": {
                     "summary": "An example of invalid values",
                     "value": {
                       "message": "Validation error.",
                       "errors": [
-                        "Validation validationName on field failed"
+                        "Validation validationName on fieldName failed"
                       ]
                     }
                   }
@@ -58,15 +58,30 @@
             }
           },
           "409": {
-            "description": "Conflict - User cannot be created (e.g., conflicting username)",
+            "description": "Conflict - User cannot be created",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 },
                 "examples": {
-                  "conflict": {
-                    "$ref": "#/components/examples/ConflictError"
+                  "e1": {
+                    "summary": "An example of an existing username",
+                    "value": {
+                      "message": "Unique constraint error.",
+                      "errors": [
+                        "Value already exists for user_username"
+                      ]
+                    }
+                  },
+                  "e2": {
+                    "summary": "An example of an existing email",
+                    "value": {
+                      "message": "Unique constraint error.",
+                      "errors": [
+                        "Value already exists for user_email"
+                      ]
+                    }
                   }
                 }
               }
@@ -80,8 +95,12 @@
                   "$ref": "#/components/schemas/Error"
                 },
                 "examples": {
-                  "internal": {
-                    "$ref": "#/components/examples/InternalServerError"
+                  "e1": {
+                    "summary": "An example of a transaction error",
+                    "value": {
+                      "message": "Failed to create user account.",
+                      "errors": []
+                    }
                   }
                 }
               }
@@ -211,8 +230,14 @@
                   "$ref": "#/components/schemas/Error"
                 },
                 "examples": {
-                  "unauthorized": {
-                    "$ref": "#/components/examples/UnauthorizedError"
+                  "e1": {
+                    "summary": "An example of an unauthorized error",
+                    "value": {
+                      "message": "Invalid credentials.",
+                      "errors": [
+                        "Password does not match"
+                      ]
+                    }
                   }
                 }
               }
@@ -226,8 +251,12 @@
                   "$ref": "#/components/schemas/Error"
                 },
                 "examples": {
-                  "notFound": {
-                    "$ref": "#/components/examples/NotFoundError"
+                  "e1": {
+                    "summary": "An example of an not found error",
+                    "value": {
+                      "message": "User does not exist.",
+                      "errors": []
+                    }
                   }
                 }
               }
@@ -241,8 +270,14 @@
                   "$ref": "#/components/schemas/Error"
                 },
                 "examples": {
-                  "internalServer": {
-                    "$ref": "#/components/examples/InternalServerError"
+                  "e1": {
+                    "summary": "An example of a token verification error",
+                    "value": {
+                      "message": "Failed to sign login token.",
+                      "errors": [
+                        "Some message"
+                      ]
+                    }
                   }
                 }
               }
@@ -287,14 +322,14 @@
                   "$ref": "#/components/schemas/Error"
                 },
                 "examples": {
-                  "userNotFound": {
-                    "summary": "An example of an invalid user id",
+                  "e1": {
+                    "summary": "An example of an invalid username",
                     "value": {
-                      "message": "Payload userId does not belong to a user.",
+                      "message": "Payload username does not belong to a user.",
                       "errors": []
                     }
                   },
-                  "invalidQRCode": {
+                  "e2": {
                     "summary": "An example of an invalid QR code",
                     "value": {
                       "message": "QR code signature is invalid.",
@@ -313,8 +348,14 @@
                   "$ref": "#/components/schemas/Error"
                 },
                 "examples": {
-                  "generic": {
-                    "$ref": "#/components/examples/InternalServerError"
+                  "e1": {
+                    "summary": "An example of a signature verification error",
+                    "value": {
+                      "message": "Failed to verify QR code signature.",
+                      "errors": [
+                        "Some message"
+                      ]
+                    }
                   }
                 }
               }
@@ -362,8 +403,33 @@
                   "$ref": "#/components/schemas/Error"
                 },
                 "examples": {
-                  "userNotFound": {
-                    "$ref": "#/components/examples/NotFoundError"
+                  "e1": {
+                    "summary": "An example of a not found user",
+                    "value": {
+                      "message": "User does not exist.",
+                      "errors": []
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict - QR code cannot be created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "e1": {
+                    "summary": "An example of a conflicting signature",
+                    "value": {
+                      "message": "Unique constraint error.",
+                      "errors": [
+                        "Value already exists for qr_code_signature"
+                      ]
+                    }
                   }
                 }
               }
@@ -377,8 +443,19 @@
                   "$ref": "#/components/schemas/Error"
                 },
                 "examples": {
-                  "generic": {
-                    "$ref": "#/components/examples/InternalServerError"
+                  "e1": {
+                    "summary": "An example of a payload signature failure",
+                    "value": {
+                      "message": "Failed to sign payload.",
+                      "errors": []
+                    }
+                  },
+                  "e2": {
+                    "summary": "An example of a qr code url generation failure",
+                    "value": {
+                      "message": "Failed to create the QR code URL.",
+                      "errors": []
+                    }
                   }
                 }
               }
@@ -421,7 +498,7 @@
                   "$ref": "#/components/schemas/Error"
                 },
                 "examples": {
-                  "invalidValues": {
+                  "e1": {
                     "summary": "An example of invalid values",
                     "value": {
                       "message": "Invalid complaint request data.",
@@ -436,15 +513,21 @@
             }
           },
           "409": {
-            "description": "Conflict - Complaint cannot be created (e.g., conflicting deviceId)",
+            "description": "Conflict - Complaint cannot be created",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 },
                 "examples": {
-                  "conflict": {
-                    "$ref": "#/components/examples/ConflictError"
+                  "e1": {
+                    "summary": "An example of a deviceId conflict",
+                    "value": {
+                      "message": "Unique constraint error.",
+                      "errors": [
+                        "Value already exists for complaint_device_id"
+                      ]
+                    }
                   }
                 }
               }
@@ -470,43 +553,6 @@
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "JWT"
-      }
-    },
-    "examples": {
-      "ConflictError": {
-        "summary": "An example of a unique constraint error",
-        "value": {
-          "message": "Unique constraint error.",
-          "errors": [
-            "duplicating key value violates unique constraint \"table_field_key\""
-          ]
-        }
-      },
-      "InternalServerError": {
-        "summary": "An example of a internal server error",
-        "value": {
-          "message": "Internal server error.",
-          "errors": [
-            "Failed to do something",
-            "Refer to console"
-          ]
-        }
-      },
-      "NotFoundError": {
-        "summary": "An example of a not found error",
-        "value": {
-          "message": "User does not exist.",
-          "errors": []
-        }
-      },
-      "UnauthorizedError": {
-        "summary": "An example of an unauthorized error",
-        "value": {
-          "message": "Invalid credentials.",
-          "errors": [
-            "Password does not match"
-          ]
-        }
       }
     },
     "schemas": {

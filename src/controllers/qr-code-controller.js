@@ -60,14 +60,12 @@ export default class QRCodeController {
   };
 
   verifyQRCode = async (req, res) => {
-    const signedPayload = req.body;
-
-    const { signature, ...payload } = signedPayload;
+    const { signature, ...payload } = req.body;
 
     const user = await User.findOne({ where: { username: payload.username } });
 
     if (!user) {
-      throw new CustomError('Payload userId does not belong to a user.', 400);
+      throw new CustomError('Payload username does not belong to a user.', 400);
     }
 
     let isValid;

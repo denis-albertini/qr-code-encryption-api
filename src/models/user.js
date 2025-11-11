@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { DataTypes, Model } from 'sequelize';
+import { DataTypes, Model, Op } from 'sequelize';
 
 export default class User extends Model {
   static init(sequelize) {
@@ -55,8 +55,25 @@ export default class User extends Model {
         sequelize,
         tableName: 'user',
         paranoid: true,
+        createdAt: true,
         hooks: {
           beforeCreate: async (user, _options) => {
+            const pendingConflictingAccount = await User.findOne({
+              where: {
+                [Op.or]: [{ username: user.username }, { email: user.email }],
+                status: 'PENDING',
+              },
+              paranoid: false,
+            });
+
+            const hoursDiff =
+              (new Date() - pendingConflictingAccount?.createdAt) /
+              (1000 * 60 * 60);
+
+            if (hoursDiff > 24) {
+              await pendingConflictingAccount.destroy({ force: true });
+            }
+
             user.password = await bcrypt.hash(user.password, 10);
           },
         },

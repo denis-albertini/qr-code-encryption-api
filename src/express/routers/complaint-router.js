@@ -5,6 +5,7 @@ const router = express.Router();
 const complaintController = new ComplaintController();
 
 router.post(
+  '/',
   /*
     #swagger.summary = 'Create a complaint'
     #swagger.description = 'Create a new complaint'
@@ -25,7 +26,7 @@ router.post(
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            invalidValues: {
+            e1: {
               summary: 'An example of invalid values',
               value: {
                 message: 'Invalid complaint request data.',
@@ -40,18 +41,23 @@ router.post(
       }
     }
     #swagger.responses[409] = {
-      description: 'Conflict - Complaint cannot be created (e.g., conflicting deviceId)',
+      description: 'Conflict - Complaint cannot be created',
       content: {
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            conflict: { $ref: '#/components/examples/ConflictError' }
+            e1: {
+              summary: 'An example of a deviceId conflict',
+              value: {
+                message: 'Unique constraint error.',
+                errors: ['Value already exists for complaint_device_id']
+              }
+            }
           }
         }
       }
     }
   */
-  '/',
   complaintController.createComplaint
 );
 

@@ -16,6 +16,7 @@ export default class QRCode extends Model {
         signature: {
           type: DataTypes.CHAR(344),
           allowNull: false,
+          unique: true,
         },
       },
       {

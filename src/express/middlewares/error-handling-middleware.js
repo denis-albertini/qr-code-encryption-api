@@ -15,12 +15,12 @@ export const errorHandlingMiddleware = (err, _req, res, _next) => {
       case 'UniqueConstraintError':
         message = 'Unique constraint error.';
         status = 409;
-        errors = [err.message];
-        break;
-      case 'ForeignKeyConstraintError':
-        message = 'Foreign key constraint error.';
-        status = 409;
-        errors = [err.message];
+        const conflicts = err.message
+          .match(/"([^"]*)"/)
+          .map(str => str.slice(1, -1))[0]
+          .split('_');
+        conflicts.pop();
+        errors = [`Unique value already exists for ${conflicts.join('_')}`];
         break;
       default:
         message = 'Internal server error.';

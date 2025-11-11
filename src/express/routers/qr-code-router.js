@@ -6,6 +6,7 @@ const router = express.Router();
 const qrCodeController = new QRCodeController();
 
 router.post(
+  '/verify',
   /*
     #swagger.summary = 'Verify a QR code'
     #swagger.description = 'Verify a QR code's signature'
@@ -26,14 +27,14 @@ router.post(
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            userNotFound: {
-              summary: 'An example of an invalid user id',
+            e1: {
+              summary: 'An example of an invalid username',
               value: {
-                message: 'Payload userId does not belong to a user.',
+                message: 'Payload username does not belong to a user.',
                 errors: []
               }
             },
-            invalidQRCode: {
+            e2: {
               summary: 'An example of an invalid QR code',
               value: {
                 message: 'QR code signature is invalid.',
@@ -50,22 +51,28 @@ router.post(
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            generic: { $ref: '#/components/examples/InternalServerError' }
+            e1: {
+              summary: 'An example of a signature verification error',
+              value: {
+                message: 'Failed to verify QR code signature.',
+                errors: ['Some message']
+              }
+            }
           }
         }
       }
     }
   */
-  '/verify',
   qrCodeController.verifyQRCode
 );
 
 router.use(userAuthMiddleware);
 router.post(
+  '/',
   /*
     #swagger.summary = 'Generate a QR code'
     #swagger.description = 'Generate a signed QR code'
-    #swagger.security = [{'UserAuth': []}]
+    #swagger.security = [{ 'UserAuth': [] }]
     #swagger.requestBody = {
       required: true,
       content: {
@@ -91,7 +98,30 @@ router.post(
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            userNotFound: { $ref: '#/components/examples/NotFoundError' }
+            e1: {
+              summary: 'An example of a not found user',
+              value: {
+                message: 'User does not exist.',
+                errors: []
+              }
+            }
+          }
+        }
+      }
+    }
+    #swagger.responses[409] = {
+      description: 'Conflict - QR code cannot be created',
+      content: {
+        'application/json': {
+          schema: { $ref: '#/components/schemas/Error' },
+          examples: {
+            e1: {
+              summary: 'An example of a conflicting signature',
+              value: {
+                message: 'Unique constraint error.',
+                errors: ['Value already exists for qr_code_signature']
+              }
+            }
           }
         }
       }
@@ -102,13 +132,25 @@ router.post(
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            generic: { $ref: '#/components/examples/InternalServerError' }
+            e1: {
+              summary: 'An example of a payload signature failure',
+              value: {
+                message: 'Failed to sign payload.',
+                errors: []
+              }
+            },
+            e2: {
+              summary: 'An example of a qr code url generation failure',
+              value: {
+                message: 'Failed to create the QR code URL.',
+                errors: []
+              }
+            }
           }
         }
       }
     }
   */
-  '/',
   qrCodeController.generateQRCode
 );
 

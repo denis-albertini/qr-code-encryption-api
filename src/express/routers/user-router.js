@@ -26,11 +26,11 @@ router.post(
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            invalidFields: {
+            e1: {
               summary: 'An example of invalid values',
               value: {
                 message: 'Validation error.',
-                errors: ['Validation validationName on field failed']
+                errors: ['Validation validationName on fieldName failed']
               }
             }
           }
@@ -38,12 +38,25 @@ router.post(
       }
     }
     #swagger.responses[409] = {
-      description: 'Conflict - User cannot be created (e.g., conflicting username)',
+      description: 'Conflict - User cannot be created',
       content: {
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            conflict: { $ref: '#/components/examples/ConflictError' }
+            e1: {
+              summary: 'An example of an existing username',
+              value: {
+                message: 'Unique constraint error.',
+                errors: [ 'Value already exists for user_username' ]
+              }
+            },
+            e2: {
+              summary: 'An example of an existing email',
+              value: {
+                message: 'Unique constraint error.',
+                errors: [ 'Value already exists for user_email' ]
+              }
+            }
           }
         }
       }
@@ -54,7 +67,20 @@ router.post(
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            internal: { $ref: '#/components/examples/InternalServerError' }
+            e1: {
+              summary: 'An example of a key gen failure',
+              value: {
+                message: 'Failed to generate RSA keys.',
+                errors: []
+              }
+            },
+            e1: {
+              summary: 'An example of a transaction error',
+              value: {
+                message: 'Failed to create user account.',
+                errors: []
+              }
+            }
           }
         }
       }
@@ -159,7 +185,13 @@ router.post(
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            unauthorized: { $ref: '#/components/examples/UnauthorizedError' }
+            e1: {
+              summary: 'An example of an unauthorized error',
+              value: {
+                message: 'Invalid credentials.',
+                errors: ['Password does not match']
+              }
+            }
           }
         }
       }
@@ -170,7 +202,13 @@ router.post(
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            notFound: { $ref: '#/components/examples/NotFoundError' }
+            e1: {
+              summary: 'An example of an not found error',
+              value: {
+                message: 'User does not exist.',
+                errors: []
+              }
+            }
           }
         }
       }
@@ -181,7 +219,20 @@ router.post(
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            internalServer: { $ref: '#/components/examples/InternalServerError' }
+            e1: {
+              summary: 'An example of a not matching password',
+              value: {
+                message: 'Failed to compare passwords on login.',
+                errors: []
+              }
+            },
+            e1: {
+              summary: 'An example of a token verification error',
+              value: {
+                message: 'Failed to sign login token.',
+                errors: ['Some message']
+              }
+            }
           }
         }
       }

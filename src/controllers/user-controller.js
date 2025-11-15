@@ -1,33 +1,41 @@
 import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
-import jwt from 'jsonwebtoken';
 import { UniqueConstraintError } from 'sequelize';
-import { promisify } from 'util';
 import database from '../database.js';
-import emailService from '../email-service.js';
 import CustomError from '../models/custom-error.js';
 import User from '../models/user.js';
-
-const cryptoAsyncGenerateKeyPair = promisify(crypto.generateKeyPair);
-
-const jwtAsyncSign = promisify(jwt.sign);
-const jwtAsyncVerify = promisify(jwt.verify);
+import { CryptoService } from '../services/crypto-service.js';
+import { EmailError, EmailService } from '../services/email-service.js';
+import {
+  JWTError,
+  JWTExpiredError,
+  JWTService,
+} from '../services/jwt-service.js';
 
 export default class UserController {
+  #cryptoService;
+  #emailService;
+  #jwtService;
+
+  constructor() {
+    this.#cryptoService = new CryptoService();
+    this.#emailService = new EmailService(
+      process.env.EMAIL_HOST,
+      process.env.EMAIL_USER,
+      process.env.EMAIL_PASS
+    );
+    this.#jwtService = new JWTService(process.env.JWT_SECRET);
+  }
+
   createUser = async (req, res) => {
     let privateKey, publicKey;
 
     try {
-      const keys = await cryptoAsyncGenerateKeyPair('rsa', {
-        modulusLength: 2048,
-        publicKeyEncoding: { type: 'spki', format: 'pem' },
-        privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
-      });
+      const keys = await this.#cryptoService.generateRSAKeys();
 
       privateKey = keys.privateKey;
       publicKey = keys.publicKey;
     } catch (error) {
-      throw new CustomError('Failed to generate RSA keys.', 500, error.message);
+      throw new CustomError(error.message, 500, ...error.errors);
     }
 
     try {
@@ -38,13 +46,18 @@ export default class UserController {
         { transaction: database.transaction }
       );
 
-      const token = await jwtAsyncSign(
+      const token = await this.#jwtService.sign(
         { id: user.id, purpose: 'EMAIL_CONFIRMATION' },
-        process.env.JWT_SECRET,
         { expiresIn: '1d' }
       );
 
-      await emailService.sendAccountConfirmation(user.id, user.email, token);
+      await this.#emailService.sendAccountConfirmation(
+        user.id,
+        user.email,
+        token,
+        emailHtml,
+        'QR Code Encryption App'
+      );
 
       await database.commitTransaction();
     } catch (error) {
@@ -54,11 +67,18 @@ export default class UserController {
         throw error;
       }
 
-      throw new CustomError(
-        'Failed to create user account.',
-        500,
-        error.message
-      );
+      let message,
+        errors = [];
+
+      if (error instanceof JWTError || error instanceof EmailError) {
+        message = error.message;
+        errors.push(...error.errors);
+      } else {
+        message = 'Failed to create user account.';
+        errors.push(error.message);
+      }
+
+      throw new CustomError(message, 500, ...errors);
     }
 
     res.sendStatus(201);
@@ -71,26 +91,17 @@ export default class UserController {
     let payload;
 
     try {
-      payload = await jwtAsyncVerify(token, process.env.JWT_SECRET);
+      payload = await this.#jwtService.verify(token);
     } catch (error) {
-      let message,
-        status,
-        errors = [];
+      const message = error.message;
+      const status = error instanceof JWTExpiredError ? 400 : 500;
+      const errors = error.errors;
 
-      if (error instanceof jwt.TokenExpiredError) {
-        message = 'Token is expired.';
-        status = 400;
-      } else {
-        message = 'Failed to verify email confirmation token.';
-        status = 500;
-        errors.push(error.message);
-      }
-
-      throw new CustomError(message, status, errors);
+      throw new CustomError(message, status, ...errors);
     }
 
     if (payload.id !== userId || payload.purpose !== 'EMAIL_CONFIRMATION') {
-      throw new CustomError('Invalid token.', 400);
+      throw new CustomError('Forbidden.', 403, 'Invalid token');
     }
 
     const user = await User.findByPk(userId);
@@ -144,15 +155,91 @@ export default class UserController {
     let token;
 
     try {
-      token = await jwtAsyncSign(
+      token = await this.#jwtService.sign(
         { id: user.id, purpose: 'ACCESS', role: user.role },
-        process.env.JWT_SECRET,
         { expiresIn: '7d' }
       );
     } catch (error) {
-      throw new CustomError('Failed to sign login token.', 500, error.message);
+      throw new CustomError(error.message, 500, ...error.errors);
     }
 
     res.status(200).send({ token });
   };
 }
+
+const emailHtml = `
+  <!DOCTYPE html>
+  <html lang="pt-BR">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Confirmação de Conta</title>
+      <style>
+          body {
+              font-family: Arial, sans-serif;
+              line-height: 1.6;
+              margin: 0;
+              padding: 0;
+              background-color: #f4f4f4;
+          }
+          .container {
+              max-width: 600px;
+              margin: 0 auto;
+              padding: 20px;
+              background-color: #ffffff;
+              border-radius: 8px;
+              box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+          }
+          .header {
+              text-align: center;
+              padding: 20px 0;
+              background-color: #2c3e50;
+              color: white;
+              border-radius: 8px 8px 0 0;
+          }
+          .content {
+              padding: 30px 20px;
+              text-align: center;
+          }
+          .button {
+              display: inline-block;
+              padding: 12px 24px;
+              background-color: #3498db;
+              color: white;
+              text-decoration: none;
+              border-radius: 5px;
+              margin: 20px 0;
+              font-weight: bold;
+          }
+          .footer {
+              text-align: center;
+              padding: 20px;
+              color: #7f8c8d;
+              font-size: 12px;
+          }
+      </style>
+  </head>
+  <body>
+      <div class="container">
+          <div class="header">
+              <h1>Assinatura Digital QR</h1>
+          </div>
+          
+          <div class="content">
+              <h2>Confirmação de Conta</h2>
+              <p>Olá,</p>
+              <p>Obrigado por criar uma conta em nosso aplicativo de QR Codes Digitalmente Assinados!</p>
+              <p>Para ativar sua conta, clique no botão abaixo:</p>
+              
+              <a href="{{confirmationUrl}}" class="button">Confirmar Minha Conta</a>
+              
+              <p>Este link expirará em 24 horas por motivos de segurança.</p>
+          </div>
+          
+          <div class="footer">
+              <p>Se você não criou esta conta, por favor ignore este email.</p>
+          </div>
+      </div>
+  </body>
+  </html>
+`;

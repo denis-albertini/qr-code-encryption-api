@@ -15,12 +15,11 @@ export const errorHandlingMiddleware = (err, _req, res, _next) => {
       case 'UniqueConstraintError':
         message = 'Unique constraint error.';
         status = 409;
-        const conflicts = err.message
-          .match(/"([^"]*)"/)
-          .map(str => str.slice(1, -1))[0]
-          .split('_');
-        conflicts.pop();
-        errors = [`Unique value already exists for ${conflicts.join('_')}`];
+        const match = err.message.match(/(["'])(.*?)\1/);
+        const conflict = match[2];
+        const tableField = conflict.split('_');
+        tableField.pop();
+        errors = [`Unique value already exists for ${tableField.join('_')}`];
         break;
       default:
         message = 'Internal server error.';

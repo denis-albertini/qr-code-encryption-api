@@ -1,15 +1,17 @@
-import crypto from 'crypto';
 import { toDataURL as createQRCodeURl } from 'qrcode';
-import { promisify } from 'util';
 import { v4 as uuidv4 } from 'uuid';
 import CustomError from '../models/custom-error.js';
 import QRCode from '../models/qr-code.js';
 import User from '../models/user.js';
-
-const cryptoAsyncSign = promisify(crypto.sign);
-const cryptoAsyncVerify = promisify(crypto.verify);
+import { CryptoService } from '../services/crypto-service.js';
 
 export default class QRCodeController {
+  #cryptoService;
+
+  constructor() {
+    this.#cryptoService = new CryptoService();
+  }
+
   generateQRCode = async (req, res) => {
     const { userId, content } = req.body;
 
@@ -29,15 +31,12 @@ export default class QRCodeController {
     let signature;
 
     try {
-      signature = (
-        await cryptoAsyncSign('sha256', Buffer.from(JSON.stringify(payload)), {
-          key: user.privateKey,
-          type: 'pkcs8',
-          format: 'pem',
-        })
-      ).toString('base64');
+      signature = await this.#cryptoService.signWithSHA256(
+        payload,
+        user.privateKey
+      );
     } catch (error) {
-      throw new CustomError('Failed to sign payload.', 500, error.message);
+      throw new CustomError(error.message, 500, ...error.errors);
     }
 
     const signedPayload = { ...payload, signature };
@@ -71,18 +70,13 @@ export default class QRCodeController {
     let isValid;
 
     try {
-      isValid = await cryptoAsyncVerify(
-        'sha256',
-        Buffer.from(JSON.stringify(payload)),
+      isValid = await this.#cryptoService.verifyWithSHA256(
+        payload,
         user.publicKey,
-        Buffer.from(signature, 'base64')
+        signature
       );
     } catch (error) {
-      throw new CustomError(
-        'Failed to verify QR code signature.',
-        500,
-        error.message
-      );
+      throw new CustomError(error.message, 500, ...error.errors);
     }
 
     if (!isValid) {

@@ -27,20 +27,8 @@ router.post(
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            e1: {
-              summary: 'An example of an invalid username',
-              value: {
-                message: 'Payload username does not belong to a user.',
-                errors: []
-              }
-            },
-            e2: {
-              summary: 'An example of an invalid QR code',
-              value: {
-                message: 'QR code signature is invalid.',
-                errors: []
-              }
-            }
+            e1: { $ref: '#/components/examples/InvalidPayloadUsername' },
+            e3: { $ref: '#/components/examples/InvalidSignature' }
           }
         }
       }
@@ -51,13 +39,7 @@ router.post(
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            e1: {
-              summary: 'An example of a signature verification error',
-              value: {
-                message: 'Failed to verify QR code signature.',
-                errors: ['Some message']
-              }
-            }
+            e1: { $ref: '#/components/examples/SignatureVerifyError' }
           }
         }
       }
@@ -90,7 +72,26 @@ router.post(
       }
     }
     #swagger.responses[401] = {
-      description: 'Unauthorized - User authentication required'
+      description: 'Unauthorized - User authentication required',
+      content: {
+        'application/json': {
+          schema: { $ref: '#/components/schemas/Error' },
+          examples: {
+            e1: { $ref: '#/components/examples/MissingCredentials' }
+          }
+        }
+      }
+    }
+    #swagger.responses[403] = {
+      description: 'Forbidden - Insufficient credentials',
+      content: {
+        'application/json': {
+          schema: { $ref: '#/components/schemas/Error' },
+          examples: {
+            e1: { $ref: '#/components/examples/InvalidTokenPayload' }
+          }
+        }
+      }
     }
     #swagger.responses[404] = {
       description: 'Bad Request - Invalid input data',
@@ -98,13 +99,7 @@ router.post(
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            e1: {
-              summary: 'An example of a not found user',
-              value: {
-                message: 'User does not exist.',
-                errors: []
-              }
-            }
+            e1: { $ref: '#/components/examples/UserNotFound' }
           }
         }
       }
@@ -115,13 +110,7 @@ router.post(
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            e1: {
-              summary: 'An example of a conflicting signature',
-              value: {
-                message: 'Unique constraint error.',
-                errors: ['Value already exists for qr_code_signature']
-              }
-            }
+            e1: { $ref: '#/components/examples/ConflictingSignature' }
           }
         }
       }
@@ -132,20 +121,8 @@ router.post(
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            e1: {
-              summary: 'An example of a payload signature failure',
-              value: {
-                message: 'Failed to sign payload.',
-                errors: []
-              }
-            },
-            e2: {
-              summary: 'An example of a qr code url generation failure',
-              value: {
-                message: 'Failed to create the QR code URL.',
-                errors: []
-              }
-            }
+            e1: { $ref: '#/components/examples/ContentSignError' },
+            e2: { $ref: '#/components/examples/CreateQRCodeUrlError' }
           }
         }
       }

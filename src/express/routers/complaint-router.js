@@ -26,16 +26,7 @@ router.post(
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            e1: {
-              summary: 'An example of invalid values',
-              value: {
-                message: 'Invalid complaint request data.',
-                errors: [
-                  'User not found',
-                  'QR code not found'
-                ]
-              }
-            }
+            e1: { $ref: '#/components/examples/InvalidComplaintData' }
           }
         }
       }
@@ -46,13 +37,7 @@ router.post(
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            e1: {
-              summary: 'An example of a deviceId conflict',
-              value: {
-                message: 'Unique constraint error.',
-                errors: ['Value already exists for complaint_device_id']
-              }
-            }
+            e1: { $ref: '#/components/examples/ConflictingDeviceId' }
           }
         }
       }

@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
-import { UniqueConstraintError } from 'sequelize';
+import { UniqueConstraintError, Op } from 'sequelize';
 import { promisify } from 'util';
 import database from '../database.js';
 import emailService from '../email-service.js';
@@ -27,7 +27,7 @@ export default class UserController {
       privateKey = keys.privateKey;
       publicKey = keys.publicKey;
     } catch (error) {
-      throw new CustomError('Failed to generate RSA keys.', 500, error.message);
+      throw new CustomError('Falha ao gerar chaves RSA.', 500, error.message);
     }
 
     try {
@@ -55,7 +55,7 @@ export default class UserController {
       }
 
       throw new CustomError(
-        'Failed to create user account.',
+        'Falha ao criar conta de usuário.',
         500,
         error.message
       );
@@ -78,10 +78,10 @@ export default class UserController {
         errors = [];
 
       if (error instanceof jwt.TokenExpiredError) {
-        message = 'Token is expired.';
+        message = 'Token expirado.';
         status = 400;
       } else {
-        message = 'Failed to verify email confirmation token.';
+        message = 'Falha ao verificar token de confirmação de e-mail.';
         status = 500;
         errors.push(error.message);
       }
@@ -90,35 +90,42 @@ export default class UserController {
     }
 
     if (payload.id !== userId || payload.purpose !== 'EMAIL_CONFIRMATION') {
-      throw new CustomError('Invalid token.', 400);
+      throw new CustomError('Token inválido.', 400);
     }
 
     const user = await User.findByPk(userId);
 
     if (!user || user.status !== 'PENDING') {
-      throw new CustomError('User account is not pending.', 400);
+      throw new CustomError('Conta de usuário não está pendente.', 400);
     }
 
     user.status = 'ACTIVE';
 
     await user.save();
 
-    res.sendStatus(204);
+    // Redireciona para a URI personalizada do app após ativação bem-sucedida
+    res.redirect(302, 'qrypt://account-created-message');
   };
 
   login = async (req, res) => {
-    const { username, email, password } = req.body;
+    const { identifier, password } = req.body;
 
-    let user;
-
-    if (username) {
-      user = await User.findOne({ where: { username } });
-    } else if (email) {
-      user = await User.findOne({ where: { email } });
+    if (!identifier || !password) {
+      throw new CustomError(
+        'Credenciais inválidas.',
+        400,
+        'Identificador ou senha ausente'
+      );
     }
 
+    const user = await User.findOne({
+      where: {
+        [Op.or]: [{ username: identifier }, { email: identifier }],
+      },
+    });
+
     if (!user || user.status === 'PENDING') {
-      throw new CustomError('User does not exist.', 404);
+      throw new CustomError('Usuário não existe.', 404);
     }
 
     let checksOut;
@@ -127,7 +134,7 @@ export default class UserController {
       checksOut = await bcrypt.compare(password, user.password);
     } catch (error) {
       throw new CustomError(
-        'Failed to compare passwords on login.',
+        'Falha ao comparar senhas no login.',
         500,
         error.message
       );
@@ -135,9 +142,9 @@ export default class UserController {
 
     if (!checksOut) {
       throw new CustomError(
-        'Invalid credentials.',
+        'Credenciais inválidas.',
         401,
-        'Password does not match'
+        'Senha não corresponde'
       );
     }
 
@@ -150,7 +157,11 @@ export default class UserController {
         { expiresIn: '7d' }
       );
     } catch (error) {
-      throw new CustomError('Failed to sign login token.', 500, error.message);
+      throw new CustomError(
+        'Falha ao assinar token de login.',
+        500,
+        error.message
+      );
     }
 
     res.status(200).send({ token });

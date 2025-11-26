@@ -7,8 +7,8 @@ const complaintController = new ComplaintController();
 router.post(
   '/',
   /*
-    #swagger.summary = 'Create a complaint'
-    #swagger.description = 'Create a new complaint'
+    #swagger.summary = 'Criar uma reclamação'
+    #swagger.description = 'Cria uma nova reclamação. Campo userId é opcional.'
     #swagger.requestBody = {
       required: true,
       content: {
@@ -29,10 +29,10 @@ router.post(
             e1: {
               summary: 'An example of invalid values',
               value: {
-                message: 'Invalid complaint request data.',
+                message: 'Dados de requisição de reclamação inválidos.',
                 errors: [
-                  'User not found',
-                  'QR code not found'
+                  'Usuário não encontrado',
+                  'QR code não encontrado'
                 ]
               }
             }
@@ -49,8 +49,8 @@ router.post(
             e1: {
               summary: 'An example of a deviceId conflict',
               value: {
-                message: 'Unique constraint error.',
-                errors: ['Value already exists for complaint_device_id']
+                message: 'Conflitos de valores únicos.',
+                errors: ['Valor único já existe para complaint_device_id']
               }
             }
           }
@@ -59,6 +59,43 @@ router.post(
     }
   */
   complaintController.createComplaint
+);
+
+router.get(
+  '/can-submit',
+  /*
+    #swagger.summary = 'Verificar possibilidade de reclamação'
+    #swagger.description = 'Retorna se um device pode registrar reclamação para um QR code específico.'
+    #swagger.parameters['deviceId'] = {
+      in: 'query',
+      description: 'Identificador do dispositivo',
+      required: true,
+      schema: { type: 'string' }
+    }
+    #swagger.parameters['qrCodeId'] = {
+      in: 'query',
+      required: true,
+      schema: { type: 'string' }
+    }
+    #swagger.responses[200] = {
+      description: 'Indicação se pode registrar',
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: { canSubmit: { type: 'boolean' } }
+          },
+          examples: {
+            e1: { summary: 'Pode registrar', value: { canSubmit: true } },
+            e2: { summary: 'Já registrado', value: { canSubmit: false } }
+          }
+        }
+      }
+    }
+    #swagger.responses[400] = { description: 'Parâmetros ausentes' }
+    #swagger.responses[404] = { description: 'QR code não encontrado' }
+  */
+  complaintController.canSubmitComplaint
 );
 
 export default router;

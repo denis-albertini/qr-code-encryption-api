@@ -46,6 +46,15 @@ const doc = {
         },
         additionalProperties: false,
       },
+      IdentifierLogin: {
+        type: 'object',
+        required: ['identifier', 'password'],
+        properties: {
+          identifier: { type: 'string' },
+          password: { type: 'string' },
+        },
+        additionalProperties: false,
+      },
       Token: {
         type: 'object',
         required: ['token'],
@@ -73,15 +82,42 @@ const doc = {
         },
         additionalProperties: false,
       },
-      QRCodeUrl: {
+      QRCodeVerifyText: {
         type: 'object',
-        required: ['qrCodeUrl'],
-        properties: { qrCodeUrl: { type: 'string' } },
+        required: ['qrCodeText'],
+        properties: { qrCodeText: { type: 'string' } },
+        additionalProperties: false,
+      },
+      VerifiedQRCode: {
+        type: 'object',
+        required: [
+          'id',
+          'username',
+          'createdAt',
+          'content',
+          'signature',
+          'complaintsCount',
+        ],
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          username: { type: 'string' },
+          createdAt: { type: 'string', format: 'date-time' },
+          content: { type: 'string' },
+          signature: { type: 'string' },
+          complaintsCount: { type: 'integer', minimum: 0 },
+          qrCodeText: { type: 'string' },
+        },
+        additionalProperties: false,
+      },
+      QRCodeText: {
+        type: 'object',
+        required: ['qrCodeText'],
+        properties: { qrCodeText: { type: 'string' } },
         additionalProperties: false,
       },
       NewComplaint: {
         type: 'object',
-        required: ['deviceId', 'qrCodeId', 'description', 'userId'],
+        required: ['deviceId', 'qrCodeId'],
         properties: {
           deviceId: { type: 'string' },
           qrCodeId: { type: 'string', format: 'uuid' },

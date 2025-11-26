@@ -100,11 +100,17 @@ class EmailService {
     const mailOptions = {
       from: '"QRCode Encryption App"',
       to: userEmail,
-      subject: 'Confirm Your User Account',
+      subject: 'Confirme sua conta no QRypt',
       html: htmlWithUrl,
     };
 
-    return await this.#transporter.sendMail(mailOptions);
+    return await this.#transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Error sending confirmation email:', error);
+      } else {
+        console.log('Confirmation email sent:', info.response);
+      }
+    });
   }
 }
 

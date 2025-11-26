@@ -27,9 +27,7 @@
   "paths": {
     "/api/users": {
       "post": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Create a user",
         "description": "Create a new user",
         "responses": {
@@ -69,18 +67,14 @@
                     "summary": "An example of an existing username",
                     "value": {
                       "message": "Unique constraint error.",
-                      "errors": [
-                        "Value already exists for user_username"
-                      ]
+                      "errors": ["Value already exists for user_username"]
                     }
                   },
                   "e2": {
                     "summary": "An example of an existing email",
                     "value": {
                       "message": "Unique constraint error.",
-                      "errors": [
-                        "Value already exists for user_email"
-                      ]
+                      "errors": ["Value already exists for user_email"]
                     }
                   }
                 }
@@ -121,9 +115,7 @@
     },
     "/api/users/{id}/confirm": {
       "get": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Activate user account",
         "description": "Activate a new user account",
         "parameters": [
@@ -206,9 +198,7 @@
     },
     "/api/users/login": {
       "post": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "User login",
         "description": "User login",
         "responses": {
@@ -234,9 +224,7 @@
                     "summary": "An example of an unauthorized error",
                     "value": {
                       "message": "Invalid credentials.",
-                      "errors": [
-                        "Password does not match"
-                      ]
+                      "errors": ["Password does not match"]
                     }
                   }
                 }
@@ -274,9 +262,7 @@
                     "summary": "An example of a token verification error",
                     "value": {
                       "message": "Failed to sign login token.",
-                      "errors": [
-                        "Some message"
-                      ]
+                      "errors": ["Some message"]
                     }
                   }
                 }
@@ -289,14 +275,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "oneOf": [
-                  {
-                    "$ref": "#/components/schemas/UsernameLogin"
-                  },
-                  {
-                    "$ref": "#/components/schemas/EmailLogin"
-                  }
-                ]
+                "$ref": "#/components/schemas/IdentifierLogin"
               }
             }
           }
@@ -305,12 +284,20 @@
     },
     "/api/qr-codes/verify": {
       "post": {
-        "tags": [
-          "QRCodes"
-        ],
+        "tags": ["QRCodes"],
         "summary": "Verify a QR code",
-        "description": "Verify a QR code",
+        "description": "Verify a QR code text (base45 + deflate) and signature; invalid if too many complaints",
         "responses": {
+          "200": {
+            "description": "QR code is valid - Full details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifiedQRCode"
+                }
+              }
+            }
+          },
           "204": {
             "description": "QR code is valid - No content"
           },
@@ -330,9 +317,9 @@
                     }
                   },
                   "e2": {
-                    "summary": "An example of an invalid QR code",
+                    "summary": "An example of too many complaints",
                     "value": {
-                      "message": "QR code signature is invalid.",
+                      "message": "QR code is invalid due to complaints.",
                       "errors": []
                     }
                   }
@@ -352,9 +339,7 @@
                     "summary": "An example of a signature verification error",
                     "value": {
                       "message": "Failed to verify QR code signature.",
-                      "errors": [
-                        "Some message"
-                      ]
+                      "errors": ["Some message"]
                     }
                   }
                 }
@@ -367,7 +352,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Payload"
+                "$ref": "#/components/schemas/QRCodeVerifyText"
               }
             }
           }
@@ -376,18 +361,16 @@
     },
     "/api/qr-codes": {
       "post": {
-        "tags": [
-          "QRCodes"
-        ],
+        "tags": ["QRCodes"],
         "summary": "Generate a QR code",
-        "description": "Generate a signed QR code",
+        "description": "Generate a signed QR code as compressed base45 text",
         "responses": {
           "201": {
-            "description": "QR code generated successfully",
+            "description": "QR code text generated successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/QRCodeUrl"
+                  "$ref": "#/components/schemas/QRCodeText"
                 }
               }
             }
@@ -426,9 +409,7 @@
                     "summary": "An example of a conflicting signature",
                     "value": {
                       "message": "Unique constraint error.",
-                      "errors": [
-                        "Value already exists for qr_code_signature"
-                      ]
+                      "errors": ["Value already exists for qr_code_signature"]
                     }
                   }
                 }
@@ -451,9 +432,16 @@
                     }
                   },
                   "e2": {
-                    "summary": "An example of a qr code url generation failure",
+                    "summary": "An example of a compression failure",
                     "value": {
-                      "message": "Failed to create the QR code URL.",
+                      "message": "Failed to compress QR code payload.",
+                      "errors": []
+                    }
+                  },
+                  "e3": {
+                    "summary": "An example of an encoding failure",
+                    "value": {
+                      "message": "Failed to encode QR code text.",
                       "errors": []
                     }
                   }
@@ -479,13 +467,93 @@
         }
       }
     },
+    "/api/qr-codes/users/{userId}": {
+      "get": {
+        "tags": ["QRCodes"],
+        "summary": "List user QR codes",
+        "description": "Get all QR codes associated with a userId",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of QR codes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "content": {
+                        "type": "string"
+                      },
+                      "signature": {
+                        "type": "string"
+                      },
+                      "userId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "qrCodeText": {
+                        "type": "string"
+                      },
+                      "issuerName": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - User authentication required"
+          }
+        },
+        "security": [
+          {
+            "UserAuth": []
+          }
+        ]
+      }
+    },
     "/api/complaints": {
       "post": {
-        "tags": [
-          "Complaints"
-        ],
-        "summary": "Create a complaint",
-        "description": "Create a new complaint",
+        "tags": ["Complaints"],
+        "summary": "Criar uma reclamação",
+        "description": "Cria uma nova reclamação. Campo userId é opcional.",
         "responses": {
           "201": {
             "description": "Complaint created successfully - No content"
@@ -501,10 +569,10 @@
                   "e1": {
                     "summary": "An example of invalid values",
                     "value": {
-                      "message": "Invalid complaint request data.",
+                      "message": "Dados de requisição de reclamação inválidos.",
                       "errors": [
-                        "User not found",
-                        "QR code not found"
+                        "Usuário não encontrado",
+                        "QR code não encontrado"
                       ]
                     }
                   }
@@ -523,9 +591,9 @@
                   "e1": {
                     "summary": "An example of a deviceId conflict",
                     "value": {
-                      "message": "Unique constraint error.",
+                      "message": "Conflitos de valores únicos.",
                       "errors": [
-                        "Value already exists for complaint_device_id"
+                        "Uma denúncia já foi registrada para este QR code no dispositivo"
                       ]
                     }
                   }
@@ -545,6 +613,69 @@
           }
         }
       }
+    },
+    "/api/complaints/can-submit": {
+      "get": {
+        "tags": ["Complaints"],
+        "summary": "Verificar possibilidade de reclamação",
+        "description": "Retorna se um device pode registrar reclamação para um QR code específico.",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "query",
+            "description": "Identificador do dispositivo",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "qrCodeId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Indicação se pode registrar",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "canSubmit": {
+                      "type": "boolean"
+                    }
+                  }
+                },
+                "examples": {
+                  "e1": {
+                    "summary": "Pode registrar",
+                    "value": {
+                      "canSubmit": true
+                    }
+                  },
+                  "e2": {
+                    "summary": "Já registrado",
+                    "value": {
+                      "canSubmit": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parâmetros ausentes"
+          },
+          "404": {
+            "description": "QR code não encontrado"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -558,11 +689,7 @@
     "schemas": {
       "NewUser": {
         "type": "object",
-        "required": [
-          "username",
-          "email",
-          "password"
-        ],
+        "required": ["username", "email", "password"],
         "properties": {
           "username": {
             "type": "string"
@@ -579,10 +706,7 @@
       },
       "UsernameLogin": {
         "type": "object",
-        "required": [
-          "email",
-          "password"
-        ],
+        "required": ["email", "password"],
         "properties": {
           "email": {
             "type": "string",
@@ -596,10 +720,7 @@
       },
       "EmailLogin": {
         "type": "object",
-        "required": [
-          "username",
-          "password"
-        ],
+        "required": ["username", "password"],
         "properties": {
           "username": {
             "type": "string"
@@ -610,11 +731,22 @@
         },
         "additionalProperties": false
       },
+      "IdentifierLogin": {
+        "type": "object",
+        "required": ["identifier", "password"],
+        "properties": {
+          "identifier": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
       "Token": {
         "type": "object",
-        "required": [
-          "token"
-        ],
+        "required": ["token"],
         "properties": {
           "token": {
             "type": "string"
@@ -624,13 +756,7 @@
       },
       "Payload": {
         "type": "object",
-        "required": [
-          "id",
-          "username",
-          "createdAt",
-          "content",
-          "signature"
-        ],
+        "required": ["id", "username", "createdAt", "content", "signature"],
         "properties": {
           "id": {
             "type": "string",
@@ -653,10 +779,7 @@
       },
       "NewQRCode": {
         "type": "object",
-        "required": [
-          "userId",
-          "content"
-        ],
+        "required": ["userId", "content"],
         "properties": {
           "userId": {
             "type": "string",
@@ -668,13 +791,59 @@
         },
         "additionalProperties": false
       },
-      "QRCodeUrl": {
+      "QRCodeVerifyText": {
+        "type": "object",
+        "required": ["qrCodeText"],
+        "properties": {
+          "qrCodeText": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "VerifiedQRCode": {
         "type": "object",
         "required": [
-          "qrCodeUrl"
+          "id",
+          "username",
+          "createdAt",
+          "content",
+          "signature",
+          "complaintsCount"
         ],
         "properties": {
-          "qrCodeUrl": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "username": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "content": {
+            "type": "string"
+          },
+          "signature": {
+            "type": "string"
+          },
+          "complaintsCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "qrCodeText": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "QRCodeText": {
+        "type": "object",
+        "required": ["qrCodeText"],
+        "properties": {
+          "qrCodeText": {
             "type": "string"
           }
         },
@@ -682,12 +851,7 @@
       },
       "NewComplaint": {
         "type": "object",
-        "required": [
-          "deviceId",
-          "qrCodeId",
-          "description",
-          "userId"
-        ],
+        "required": ["deviceId", "qrCodeId"],
         "properties": {
           "deviceId": {
             "type": "string"
@@ -710,10 +874,7 @@
       },
       "Error": {
         "type": "object",
-        "required": [
-          "message",
-          "errors"
-        ],
+        "required": ["message", "errors"],
         "properties": {
           "message": {
             "type": "string"

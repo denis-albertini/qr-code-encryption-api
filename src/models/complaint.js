@@ -11,17 +11,36 @@ export default class Complaint extends Model {
         },
         description: {
           type: DataTypes.STRING(500),
+          allowNull: true,
+          field: 'description',
         },
         deviceId: {
           type: DataTypes.STRING,
           allowNull: false,
-          unique: true,
+          field: 'device_id',
+        },
+        qrCodeId: {
+          type: DataTypes.UUID,
+          allowNull: false,
+          field: 'qr_code_id',
+        },
+        userId: {
+          type: DataTypes.UUID,
+          allowNull: true,
+          field: 'user_id',
         },
       },
       {
         sequelize,
         tableName: 'complaint',
         createdAt: true,
+        indexes: [
+          {
+            unique: true,
+            fields: ['device_id', 'qr_code_id'],
+            name: 'complaint_device_qrcode_unique',
+          },
+        ],
       }
     );
   }

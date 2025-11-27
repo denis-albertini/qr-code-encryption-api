@@ -59,13 +59,7 @@ router.post(
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            e1: {
-              summary: 'An example of a signature verification error',
-              value: {
-                message: 'Failed to verify QR code signature.',
-                errors: ['Some message']
-              }
-            }
+            e1: { $ref: '#/components/examples/SignatureVerifyError' }
           }
         }
       }
@@ -98,7 +92,26 @@ router.post(
       }
     }
     #swagger.responses[401] = {
-      description: 'Unauthorized - User authentication required'
+      description: 'Unauthorized - User authentication required',
+      content: {
+        'application/json': {
+          schema: { $ref: '#/components/schemas/Error' },
+          examples: {
+            e1: { $ref: '#/components/examples/MissingCredentials' }
+          }
+        }
+      }
+    }
+    #swagger.responses[403] = {
+      description: 'Forbidden - Insufficient credentials',
+      content: {
+        'application/json': {
+          schema: { $ref: '#/components/schemas/Error' },
+          examples: {
+            e1: { $ref: '#/components/examples/InvalidTokenPayload' }
+          }
+        }
+      }
     }
     #swagger.responses[404] = {
       description: 'Bad Request - Invalid input data',
@@ -106,13 +119,7 @@ router.post(
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            e1: {
-              summary: 'An example of a not found user',
-              value: {
-                message: 'User does not exist.',
-                errors: []
-              }
-            }
+            e1: { $ref: '#/components/examples/UserNotFound' }
           }
         }
       }
@@ -123,13 +130,7 @@ router.post(
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            e1: {
-              summary: 'An example of a conflicting signature',
-              value: {
-                message: 'Unique constraint error.',
-                errors: ['Value already exists for qr_code_signature']
-              }
-            }
+            e1: { $ref: '#/components/examples/ConflictingSignature' }
           }
         }
       }

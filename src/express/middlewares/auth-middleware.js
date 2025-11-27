@@ -1,8 +1,7 @@
-import jwt from 'jsonwebtoken';
-import { promisify } from 'util';
 import CustomError from '../../models/custom-error.js';
+import { JWTExpiredError, JWTService } from '../../services/jwt-service.js';
 
-const jwtAsyncVerify = promisify(jwt.verify);
+const jwtService = new JWTService(process.env.JWT_SECRET);
 
 function createAuthMiddleware(purpose, ...acceptedRoles) {
   return async (req, _res, next) => {
@@ -20,7 +19,7 @@ function createAuthMiddleware(purpose, ...acceptedRoles) {
     let payload;
 
     try {
-      payload = await jwtAsyncVerify(token, process.env.JWT_SECRET);
+      payload = await jwtService.verify(token);
     } catch (error) {
       throw new CustomError(
         'Falha ao verificar token JWT.',

@@ -27,13 +27,7 @@ router.post(
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            e1: {
-              summary: 'An example of invalid values',
-              value: {
-                message: 'Validation error.',
-                errors: ['Validation validationName on fieldName failed']
-              }
-            }
+            e1: { $ref: '#/components/examples/ValidationError' }
           }
         }
       }
@@ -44,20 +38,8 @@ router.post(
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            e1: {
-              summary: 'An example of an existing username',
-              value: {
-                message: 'Unique constraint error.',
-                errors: [ 'Value already exists for user_username' ]
-              }
-            },
-            e2: {
-              summary: 'An example of an existing email',
-              value: {
-                message: 'Unique constraint error.',
-                errors: [ 'Value already exists for user_email' ]
-              }
-            }
+            e1: { $ref: '#/components/examples/ConflictingUsername' },
+            e2: { $ref: '#/components/examples/ConflictingEmail' }
           }
         }
       }
@@ -68,20 +50,10 @@ router.post(
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            e1: {
-              summary: 'An example of a key gen failure',
-              value: {
-                message: 'Failed to generate RSA keys.',
-                errors: []
-              }
-            },
-            e1: {
-              summary: 'An example of a transaction error',
-              value: {
-                message: 'Failed to create user account.',
-                errors: []
-              }
-            }
+            e1: { $ref: '#/components/examples/KeyGenError' },
+            e2: { $ref: '#/components/examples/TokenSignError' },
+            e3: { $ref: '#/components/examples/AccountConfirmationEmailError' },
+            e4: { $ref: '#/components/examples/UserCreationError' }
           }
         }
       }
@@ -109,27 +81,9 @@ router.get(
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            e1: {
-              summary: 'An example of an expired token',
-              value: {
-                message: 'Token is expired.',
-                errors: []
-              }
-            },
-            e2: {
-              summary: 'An example of an invalid token payload',
-              value: {
-                message: 'Token is invalid.',
-                errors: []
-              }
-            },
-            e3: {
-              summary: 'An example of an invalid user id',
-              value: {
-                message: 'User account is not pending.',
-                errors: []
-              }
-            }
+            e1: { $ref: '#/components/examples/ExpiredToken' },
+            e2: { $ref: '#/components/examples/InvalidTokenPayload' },
+            e3: { $ref: '#/components/examples/NotPendingAccount' }
           }
         }
       }
@@ -140,13 +94,7 @@ router.get(
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            e1: {
-              summary: 'An example of token verification failure',
-              value: {
-                message: 'Failed to verify email confirmation token.',
-                errors: []
-              }
-            }
+            e1: { $ref: '#/components/examples/TokenVerifyError' }
           }
         }
       }
@@ -181,13 +129,7 @@ router.post(
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            e1: {
-              summary: 'An example of an unauthorized error',
-              value: {
-                message: 'Invalid credentials.',
-                errors: ['Password does not match']
-              }
-            }
+            e1: { $ref: '#/components/examples/WrongPasswordError' }
           }
         }
       }
@@ -198,13 +140,7 @@ router.post(
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            e1: {
-              summary: 'An example of an not found error',
-              value: {
-                message: 'User does not exist.',
-                errors: []
-              }
-            }
+            e1: { $ref: '#/components/examples/UserNotFound' }
           }
         }
       }
@@ -215,20 +151,8 @@ router.post(
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            e1: {
-              summary: 'An example of a not matching password',
-              value: {
-                message: 'Failed to compare passwords on login.',
-                errors: []
-              }
-            },
-            e1: {
-              summary: 'An example of a token verification error',
-              value: {
-                message: 'Failed to sign login token.',
-                errors: ['Some message']
-              }
-            }
+            e1: { $ref: '#/components/examples/ComparePasswordsError' },
+            e2: { $ref: '#/components/examples/TokenSignError' }
           }
         }
       }

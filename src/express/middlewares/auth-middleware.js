@@ -9,7 +9,11 @@ function createAuthMiddleware(purpose, ...acceptedRoles) {
     const token = authHeader && authHeader.split(' ')[1];
 
     if (!token) {
-      throw new CustomError('Invalid credentials.', 401, 'Missing credentials');
+      throw new CustomError(
+        'Credenciais inválidas.',
+        401,
+        'Credenciais ausentes'
+      );
     }
 
     let payload;
@@ -17,18 +21,18 @@ function createAuthMiddleware(purpose, ...acceptedRoles) {
     try {
       payload = await jwtService.verify(token);
     } catch (error) {
-      const message = error.message;
-      const status = error instanceof JWTExpiredError ? 403 : 500;
-      const errors = error.errors;
-
-      throw new CustomError(message, status, ...errors);
+      throw new CustomError(
+        'Falha ao verificar token JWT.',
+        500,
+        error.message
+      );
     }
 
     if (
       payload.purpose !== purpose ||
       (acceptedRoles.length > 0 && !acceptedRoles.includes(payload.role))
     ) {
-      throw new CustomError('Forbidden.', 403, 'Invalid token');
+      throw new CustomError('Acesso proibido.', 403);
     }
 
     next();

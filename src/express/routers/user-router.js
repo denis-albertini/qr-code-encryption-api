@@ -1,4 +1,5 @@
 import express from 'express';
+import { userAuthMiddleware } from '../middlewares/auth-middleware.js';
 import UserController from '../../controllers/user-controller.js';
 
 const router = express.Router();
@@ -110,12 +111,7 @@ router.post(
       required: true,
       content: {
         'application/json': {
-          schema: {
-            oneOf: [
-              { $ref: '#/components/schemas/UsernameLogin' },
-              { $ref: '#/components/schemas/EmailLogin' }
-            ]
-          }
+          schema: { $ref: '#/components/schemas/IdentifierLogin' }
         }
       }
     }

@@ -8,23 +8,34 @@ export const errorHandlingMiddleware = (err, _req, res, _next) => {
 
     switch (err.constructor.name) {
       case 'ValidationError':
-        message = 'Validation error.';
+        message = 'Erro de validação.';
         status = 400;
         errors = err.errors.map(e => e.message);
         break;
       case 'UniqueConstraintError':
-        message = 'Unique constraint error.';
+        message = 'Conflitos de valores únicos.';
         status = 409;
-        const match = err.message.match(/(["'])(.*?)\1/);
-        const conflict = match[2];
-        const tableField = conflict.split('_');
-        tableField.pop();
-        errors = [`Unique value already exists for ${tableField.join('_')}`];
+        const fields = Array.from(
+          new Set((err.errors || []).map(e => e.path).filter(Boolean))
+        );
+        errors = fields.map(f => {
+          switch (f) {
+            case 'username':
+              return 'Nome de usuário já está em uso.';
+            case 'email':
+              return 'E-mail já está em uso.';
+            default:
+              return `Valor único já existe para ${f}.`;
+          }
+        });
+        if (errors.length === 0) {
+          errors = ['Valor único já existe para campo desconhecido.'];
+        }
         break;
       default:
-        message = 'Internal server error.';
+        message = 'Erro interno do servidor.';
         status = 500;
-        errors = ['Refer to console'];
+        errors = ['Consulte o console'];
         console.error(err);
         break;
     }

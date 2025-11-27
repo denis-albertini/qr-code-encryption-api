@@ -66,6 +66,45 @@ class Database {
     }
 
     await this.sequelize.sync(options);
+
+    // Limpa índice único legado apenas em device_id, mantendo índice composto
+    await this.#cleanupComplaintLegacyIndex();
+  }
+
+  async #cleanupComplaintLegacyIndex() {
+    try {
+      const qi = this.sequelize.getQueryInterface();
+      const indexes = await qi.showIndex('complaint');
+      for (const idx of indexes) {
+        const fields = idx.fields || [];
+        const isLegacyDeviceOnly =
+          idx.unique &&
+          fields.length === 1 &&
+          (fields[0].attribute === 'device_id' || fields[0].name === 'device_id');
+        if (isLegacyDeviceOnly) {
+          const idxName = idx.name || idx.indexName;
+          try {
+            // Em Postgres, unique constraints viram índices automaticamente.
+            // Se for constraint (nome termina com _key), removemos via removeConstraint.
+            if (/.*_key$/.test(idxName)) {
+              await qi.removeConstraint('complaint', idxName);
+              console.log('Removed legacy unique constraint on device_id:', idxName);
+            } else {
+              await qi.removeIndex('complaint', idxName);
+              console.log('Removed legacy unique index on device_id:', idxName);
+            }
+          } catch (removeErr) {
+            console.error(
+              'Failed to remove legacy unique index on device_id:',
+              idxName,
+              removeErr.message
+            );
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Error while checking/removing legacy complaint indexes:', err.message);
+    }
   }
 
   async startTransaction() {

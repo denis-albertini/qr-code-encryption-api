@@ -9,17 +9,25 @@ router.post(
   '/verify',
   /*
     #swagger.summary = 'Verify a QR code'
-    #swagger.description = 'Verify a QR code's signature'
+    #swagger.description = 'Verify a QR code text (base45 + deflate) and signature; invalid if too many complaints'
     #swagger.requestBody = {
       required: true,
       content: {
         'application/json': {
-          schema: { $ref: '#/components/schemas/Payload' }
+          schema: { $ref: '#/components/schemas/QRCodeVerifyText' }
         }
       }
     }
     #swagger.responses[204] = {
       description: 'QR code is valid - No content'
+    }
+    #swagger.responses[200] = {
+      description: 'QR code is valid - Full details',
+      content: {
+        'application/json': {
+          schema: { $ref: '#/components/schemas/VerifiedQRCode' }
+        }
+      }
     }
     #swagger.responses[400] = {
       description: 'Bad Request - Invalid input data',
@@ -27,8 +35,20 @@ router.post(
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            e1: { $ref: '#/components/examples/InvalidPayloadUsername' },
-            e3: { $ref: '#/components/examples/InvalidSignature' }
+            e1: {
+              summary: 'An example of an invalid username',
+              value: {
+                message: 'Payload username does not belong to a user.',
+                errors: []
+              }
+            },
+            e2: {
+              summary: 'An example of too many complaints',
+              value: {
+                message: 'QR code is invalid due to complaints.',
+                errors: []
+              }
+            }
           }
         }
       }
@@ -53,7 +73,7 @@ router.post(
   '/',
   /*
     #swagger.summary = 'Generate a QR code'
-    #swagger.description = 'Generate a signed QR code'
+    #swagger.description = 'Generate a signed QR code as compressed base45 text'
     #swagger.security = [{ 'UserAuth': [] }]
     #swagger.requestBody = {
       required: true,
@@ -64,10 +84,10 @@ router.post(
       }
     }
     #swagger.responses[201] = {
-      description: 'QR code generated successfully',
+      description: 'QR code text generated successfully',
       content: {
         'application/json': {
-          schema: { $ref: '#/components/schemas/QRCodeUrl' }
+          schema: { $ref: '#/components/schemas/QRCodeText' }
         }
       }
     }
@@ -121,14 +141,81 @@ router.post(
         'application/json': {
           schema: { $ref: '#/components/schemas/Error' },
           examples: {
-            e1: { $ref: '#/components/examples/ContentSignError' },
-            e2: { $ref: '#/components/examples/CreateQRCodeUrlError' }
+            e1: {
+              summary: 'An example of a payload signature failure',
+              value: {
+                message: 'Failed to sign payload.',
+                errors: []
+              }
+            },
+            e2: {
+              summary: 'An example of a compression failure',
+              value: {
+                message: 'Failed to compress QR code payload.',
+                errors: []
+              }
+            },
+            e3: {
+              summary: 'An example of an encoding failure',
+              value: {
+                message: 'Failed to encode QR code text.',
+                errors: []
+              }
+            }
           }
         }
       }
     }
   */
   qrCodeController.generateQRCode
+);
+
+router.get(
+  '/users/:userId',
+  /*
+    #swagger.summary = 'List user QR codes'
+    #swagger.description = 'Get all QR codes associated with a userId'
+    #swagger.security = [{ 'UserAuth': [] }]
+    #swagger.parameters['userId'] = {
+      in: 'path',
+      required: true,
+     schema: { type: 'string' }
+    }
+    #swagger.parameters['page'] = {
+      in: 'query',
+      required: false,
+      schema: { type: 'integer'}
+    }
+    #swagger.parameters['limit'] = {
+      in: 'query',
+      required: false,
+      schema: { type: 'integer' }
+    }
+    #swagger.responses[200] = {
+      description: 'List of QR codes',
+      content: {
+        'application/json': {
+          schema: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                id: { type: 'string', format: 'uuid' },
+                content: { type: 'string' },
+                signature: { type: 'string' },
+                userId: { type: 'string', format: 'uuid' },
+                createdAt: { type: 'string', format: 'date-time' },
+                qrCodeText: { type: 'string' },
+                issuerName: { type: 'string' }
+              }
+            }
+          }
+        }
+      }
+    }
+    #swagger.responses[401] = { description: 'Unauthorized - User authentication required' }
+  */
+  qrCodeController.listByUser
 );
 
 export default router;

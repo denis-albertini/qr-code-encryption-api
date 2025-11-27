@@ -5,7 +5,7 @@ class EmailService {
 
   constructor() {
     this.#transporter = nodemailer.createTransport({
-      host: 'smtp.ethereal.email',
+      host: process.env.EMAIL_HOST,
       port: 587,
       auth: {
         user: process.env.EMAIL_USER,

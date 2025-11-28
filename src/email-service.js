@@ -104,13 +104,7 @@ class EmailService {
       html: htmlWithUrl,
     };
 
-    return this.#transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error('Error sending confirmation email:', error);
-      } else {
-        console.log('Confirmation email sent:', info.response);
-      }
-    });
+    return await this.#transporter.sendMail(mailOptions);
   }
 }
 

@@ -91,9 +91,9 @@ class EmailService {
     </body>
     </html>`;
 
-    const confirmationUrl = `http://${
-      process.env.DOMAIN || 'localhost'
-    }:3000/api/users/${userId}/confirm?token=${token}`;
+    const confirmationUrl = `http://${process.env.DOMAIN || 'localhost'}:${
+      process.env.PORT || '3000'
+    }/api/users/${userId}/confirm?token=${token}`;
 
     const htmlWithUrl = html.replace(/{{confirmationUrl}}/g, confirmationUrl);
 
@@ -104,7 +104,7 @@ class EmailService {
       html: htmlWithUrl,
     };
 
-    return await this.#transporter.sendMail(mailOptions, (error, info) => {
+    return this.#transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
         console.error('Error sending confirmation email:', error);
       } else {

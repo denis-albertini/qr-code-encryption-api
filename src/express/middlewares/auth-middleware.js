@@ -21,11 +21,11 @@ function createAuthMiddleware(purpose, ...acceptedRoles) {
     try {
       payload = await jwtService.verify(token);
     } catch (error) {
-      throw new CustomError(
-        'Falha ao verificar token JWT.',
-        500,
-        error.message
-      );
+      const message = error.message;
+      const status = error instanceof JWTExpiredError ? 403 : 500;
+      const errors = error.errors;
+
+      throw new CustomError(message, status, ...errors);
     }
 
     if (

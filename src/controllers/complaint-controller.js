@@ -27,24 +27,7 @@ export default class ComplaintController {
       );
     }
 
-    // Verifica se já existe reclamação para este device e qrCode
-    const existing = await Complaint.findOne({ where: { deviceId, qrCodeId } });
-    if (existing) {
-      throw new CustomError(
-        'Dispositivo já possui reclamação para este QR code.',
-        409
-      );
-    }
-
-    const complaintData = { deviceId, qrCodeId };
-    if (description) {
-      complaintData.description = description;
-    }
-    if (userId) {
-      complaintData.userId = userId;
-    }
-
-    await Complaint.create(complaintData);
+    await Complaint.create({ deviceId, qrCodeId, description, userId });
 
     const count = await Complaint.count({ where: { qrCodeId } });
 

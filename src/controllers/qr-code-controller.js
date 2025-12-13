@@ -1,18 +1,20 @@
-import crypto from 'crypto';
-import zlib from 'zlib';
 import base45 from 'base45';
-import { promisify } from 'util';
 import { v4 as uuidv4 } from 'uuid';
+import zlib from 'zlib';
+import Complaint from '../models/complaint.js';
 import CustomError from '../models/custom-error.js';
 import QRCode from '../models/qr-code.js';
 import User from '../models/user.js';
-import Complaint from '../models/complaint.js';
-
-const cryptoAsyncSign = promisify(crypto.sign);
-const cryptoAsyncVerify = promisify(crypto.verify);
+import { CryptoService } from '../services/crypto-service.js';
 
 export default class QRCodeController {
-  handleAppNameInQrCode(qrCodeContent, removeFromCode = false) {
+  #cryptoService;
+
+  constructor() {
+    this.#cryptoService = new CryptoService();
+  }
+
+  #handleAppNameInQrCode(qrCodeContent, removeFromCode = false) {
     const appName = process.env.APP_NAME || 'QRypt';
     if (removeFromCode) {
       return qrCodeContent.replace(`${appName}.`, '');
@@ -40,15 +42,12 @@ export default class QRCodeController {
     let signature;
 
     try {
-      signature = (
-        await cryptoAsyncSign('sha256', Buffer.from(JSON.stringify(payload)), {
-          key: user.privateKey,
-          type: 'pkcs8',
-          format: 'pem',
-        })
-      ).toString('base64');
+      signature = await this.#cryptoService.signWithSHA256(
+        payload,
+        user.privateKey
+      );
     } catch (error) {
-      throw new CustomError('Falha ao assinar payload.', 500, error.message);
+      throw new CustomError('Falha ao assinar payload.', 500, ...error.errors);
     }
 
     const signedPayload = { ...payload, signature };
@@ -79,7 +78,9 @@ export default class QRCodeController {
 
     await QRCode.create({ ...signedPayload, userId });
 
-    res.status(201).send(this.handleAppNameInQrCode(qrCodeText));
+    res
+      .status(201)
+      .send({ qrCodeText: this.#handleAppNameInQrCode(qrCodeText) });
   };
 
   verifyQRCode = async (req, res) => {
@@ -90,7 +91,7 @@ export default class QRCodeController {
     }
 
     // Remove app prefix if present
-    const normalizedText = this.handleAppNameInQrCode(qrCodeText, true);
+    const normalizedText = this.#handleAppNameInQrCode(qrCodeText, true);
 
     let signedPayload;
     try {
@@ -107,6 +108,10 @@ export default class QRCodeController {
 
     const { signature, ...payload } = signedPayload;
 
+    if (!(await QRCode.findByPk(payload.id))) {
+      throw new CustomError('QR code não encontrado.', 400);
+    }
+
     const user = await User.findOne({ where: { username: payload.username } });
 
     if (!user) {
@@ -116,34 +121,31 @@ export default class QRCodeController {
       );
     }
 
-    let isValid;
-
     try {
-      isValid = await cryptoAsyncVerify(
-        'sha256',
-        Buffer.from(JSON.stringify(payload)),
-        user.publicKey,
-        Buffer.from(signature, 'base64')
-      );
+      if (
+        !(await this.#cryptoService.verifyWithSHA256(
+          payload,
+          user.publicKey,
+          signature
+        ))
+      ) {
+        throw new CustomError('Assinatura do QR code inválida.', 400);
+      }
     } catch (error) {
+      if (error instanceof CustomError) {
+        throw error;
+      }
+
       throw new CustomError(
         'Falha ao verificar assinatura do QR code.',
         500,
-        error.message
+        ...error.errors
       );
     }
 
-    if (!isValid) {
-      throw new CustomError('Assinatura do QR code inválida.', 400);
-    }
-
-    // Invalidate codes with too many complaints
     const complaintsCount = await Complaint.count({
       where: { qrCodeId: payload.id },
     });
-    if (complaintsCount >= 3) {
-      throw new CustomError('QR code inválido devido a reclamações.', 400);
-    }
 
     // Build flat JSON info (plain text data) about the QR code
     const flatData = {

@@ -19,16 +19,6 @@ export default class Complaint extends Model {
           allowNull: false,
           field: 'device_id',
         },
-        qrCodeId: {
-          type: DataTypes.UUID,
-          allowNull: false,
-          field: 'qr_code_id',
-        },
-        userId: {
-          type: DataTypes.UUID,
-          allowNull: true,
-          field: 'user_id',
-        },
       },
       {
         sequelize,
@@ -37,8 +27,7 @@ export default class Complaint extends Model {
         indexes: [
           {
             unique: true,
-            fields: ['device_id', 'qr_code_id'],
-            name: 'complaint_device_qrcode_unique',
+            fields: ['qr_code_id', 'device_id'],
           },
         ],
       }

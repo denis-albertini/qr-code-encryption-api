@@ -20,7 +20,7 @@ class Database {
       throw new Error('Trying to instanciate another database connection.');
     }
 
-    this.#sequelize = new Sequelize(process.env.POSTGRESQL_CONNECTION_URI, {
+    this.#sequelize = new Sequelize(process.env.DATABASE_CONNECTION_URI, {
       logging: false,
       define: {
         underscored: true,
@@ -80,7 +80,8 @@ class Database {
         const isLegacyDeviceOnly =
           idx.unique &&
           fields.length === 1 &&
-          (fields[0].attribute === 'device_id' || fields[0].name === 'device_id');
+          (fields[0].attribute === 'device_id' ||
+            fields[0].name === 'device_id');
         if (isLegacyDeviceOnly) {
           const idxName = idx.name || idx.indexName;
           try {
@@ -88,7 +89,10 @@ class Database {
             // Se for constraint (nome termina com _key), removemos via removeConstraint.
             if (/.*_key$/.test(idxName)) {
               await qi.removeConstraint('complaint', idxName);
-              console.log('Removed legacy unique constraint on device_id:', idxName);
+              console.log(
+                'Removed legacy unique constraint on device_id:',
+                idxName
+              );
             } else {
               await qi.removeIndex('complaint', idxName);
               console.log('Removed legacy unique index on device_id:', idxName);
@@ -103,7 +107,10 @@ class Database {
         }
       }
     } catch (err) {
-      console.error('Error while checking/removing legacy complaint indexes:', err.message);
+      console.error(
+        'Error while checking/removing legacy complaint indexes:',
+        err.message
+      );
     }
   }
 
